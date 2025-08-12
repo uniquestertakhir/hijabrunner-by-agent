@@ -8,10 +8,10 @@ jobs:
   config:
     # Run only if the issue has a 'config' label
     if: contains(toJson(github.event.issue.labels), 'config')
-    permissions:
-      contents: write
-      pull-requests: write
-      issues: read
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
