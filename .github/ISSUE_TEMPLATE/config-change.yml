@@ -1,0 +1,28 @@
+name: "Config change (balance)"
+description: "Попросить бота изменить простые числовые параметры баланса игры"
+labels: ["config"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Напишите параметры вида `КЛЮЧ = значение` с новой строки. Примеры:
+        ```
+        PLAYER_SPEED = 7.5
+        JUMP_FORCE = 7.0
+        GRAVITY = -9.6
+        MAX_LIVES = 5
+        COINS_PER_PICKUP = 2
+        ```
+  - type: textarea
+    id: params
+    attributes:
+      label: Параметры
+      description: "Каждая строка: КЛЮЧ = значение"
+      placeholder: |
+        PLAYER_SPEED = 7.5
+        JUMP_FORCE = 7.0
+        GRAVITY = -9.6
+        MAX_LIVES = 5
+        COINS_PER_PICKUP = 2
+    validations:
+      required: true

@@ -1,0 +1,42 @@
+name: Agent – Config PR
+
+on:
+  issues:
+    types: [opened, edited, reopened, labeled]
+
+jobs:
+  config:
+    # Run only if the issue has a 'config' label
+    if: contains(toJson(github.event.issue.labels), 'config')
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Update Balance from Issue
+        run: |
+          python .github/scripts/update_balance.py <<'EOF'
+          ${{ github.event.issue.body }}
+          EOF
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "Agent: update Balance from issue #${{ github.event.issue.number }}"
+          title: "Agent: Balance change from issue #${{ github.event.issue.number }}"
+          body: |
+            This PR was created automatically from issue #${{ github.event.issue.number }} labeled 'config'.
+            The agent updated `Assets/Resources/Balance.json` according to the issue body.
+          branch: "agent/config/issue-${{ github.event.issue.number }}"
+          labels: agent, config
