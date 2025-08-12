@@ -1,7 +1,7 @@
 {
-  "PLAYER_SPEED": 5.0,
-  "JUMP_FORCE": 6.5,
-  "GRAVITY": -9.81,
-  "MAX_LIVES": 3,
-  "COINS_PER_PICKUP": 1
+  "PLAYER_SPEED": 7.5,
+  "JUMP_FORCE": 7.0,
+  "GRAVITY": -9.6,
+  "MAX_LIVES": 5,
+  "COINS_PER_PICKUP": 2
 }
