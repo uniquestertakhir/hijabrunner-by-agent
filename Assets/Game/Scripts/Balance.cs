@@ -1,53 +1,29 @@
-using System;
 using UnityEngine;
 
-[Serializable]
-public class BalanceData
-{
-    public float PLAYER_SPEED = 5f;
-    public float JUMP_FORCE = 6.5f;
-    public float GRAVITY = -9.81f;
-    public int MAX_LIVES = 3;
-    public int COINS_PER_PICKUP = 1;
+[System.Serializable]
+public class BalanceData {
+    public float PLAYER_SPEED = 7.5f;
+    public float JUMP_FORCE = 7.0f;
+    public float GRAVITY = -9.6f;
+    public int MAX_LIVES = 5;
+    public int COINS_PER_PICKUP = 2;
 }
 
-/// <summary>
-/// Simple static holder that loads Assets/Resources/Balance.json on game start.
-/// Put this script anywhere under Assets (e.g., Assets/Game/Scripts).
-/// </summary>
-public static class Balance
-{
-    public static float PlayerSpeed { get; private set; } = 5f;
-    public static float JumpForce   { get; private set; } = 6.5f;
-    public static float Gravity     { get; private set; } = -9.81f;
-    public static int   MaxLives    { get; private set; } = 3;
-    public static int   CoinsPerPickup { get; private set; } = 1;
-
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-    private static void Init()
-    {
-        var ta = Resources.Load<TextAsset>("Balance");
-        if (ta == null)
-        {
-            Debug.LogWarning("Balance.json not found in Resources. Using defaults.");
-            return;
-        }
-
-        try
-        {
-            var data = JsonUtility.FromJson<BalanceData>(ta.text);
-            if (data != null)
-            {
-                PlayerSpeed = data.PLAYER_SPEED;
-                JumpForce   = data.JUMP_FORCE;
-                Gravity     = data.GRAVITY;
-                MaxLives    = data.MAX_LIVES;
-                CoinsPerPickup = data.COINS_PER_PICKUP;
+public static class Balance {
+    private static BalanceData _d;
+    private static BalanceData D {
+        get {
+            if (_d == null) {
+                var ta = Resources.Load<TextAsset>("Balance");
+                _d = ta ? JsonUtility.FromJson<BalanceData>(ta.text) : new BalanceData();
             }
-        }
-        catch (Exception ex)
-        {
-            Debug.LogError("Failed to parse Balance.json: " + ex.Message);
+            return _d;
         }
     }
+
+    public static float PlayerSpeed => D.PLAYER_SPEED;
+    public static float JumpForce => D.JUMP_FORCE;
+    public static float Gravity => D.GRAVITY;
+    public static int MaxLives => D.MAX_LIVES;
+    public static int CoinsPerPickup => D.COINS_PER_PICKUP;
 }
