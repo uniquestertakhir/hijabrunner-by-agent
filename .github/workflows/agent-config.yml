@@ -1,18 +1,21 @@
-name: Agent – Config PR
+name: Agent - Config PR
 
 on:
   issues:
     types: [opened, edited, reopened, labeled]
 
-jobs:
-  config:
-    # Run only if the issue has a 'config' label
-    if: contains(toJson(github.event.issue.labels), 'config')
+# Дадаём права сразу на весь workflow
 permissions:
   contents: write
   pull-requests: write
   issues: write
+
+jobs:
+  config:
+    # Запускать только если у issue есть лейбл "config"
+    if: contains(github.event.issue.labels.*.name, 'config')
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -39,4 +42,4 @@ permissions:
             This PR was created automatically from issue #${{ github.event.issue.number }} labeled 'config'.
             The agent updated `Assets/Resources/Balance.json` according to the issue body.
           branch: "agent/config/issue-${{ github.event.issue.number }}"
-          labels: agent, config
+          labels: agent,config
