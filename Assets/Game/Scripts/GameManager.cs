@@ -1,66 +1,61 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
-using UnityEngine.UI;
 
-public class GameManager : MonoBehaviour
-{
+public class GameManager : MonoBehaviour {
     public static GameManager Instance { get; private set; }
 
-    [Header("UI")]
-    public Text coinsText;
-    public Text livesText;
-    public GameObject gameOverPanel;
+    public enum State { Menu, Playing, Paused, GameOver }
+    public State CurrentState { get; private set; } = State.Menu;
 
-    private int coins;
-    private int lives;
+    public int Lives { get; private set; }
+    public int Coins { get; private set; }
+    public float Distance { get; private set; }
 
-    void Awake()
-    {
-        if (Instance != null)
-        {
+    [SerializeField] private HUDController hud;
+
+    private void Awake() {
+        if (Instance != null && Instance != this) {
             Destroy(gameObject);
             return;
         }
         Instance = this;
-        lives = Mathf.Max(1, Balance.Instance.MAX_LIVES);
-        UpdateUI();
-        if (gameOverPanel) gameOverPanel.SetActive(false);
+        DontDestroyOnLoad(gameObject);
+        ResetRun();
     }
 
-    public void CollectCoin()
-    {
-        coins += Mathf.Max(1, Balance.Instance.COINS_PER_PICKUP);
-        UpdateUI();
-    }
-
-    public void HitObstacle()
-    {
-        lives -= 1;
-        UpdateUI();
-        if (lives <= 0)
-        {
-            GameOver();
+    private void Update() {
+        if (CurrentState == State.Playing) {
+            Distance += Balance.PlayerSpeed * Time.deltaTime;
+            hud?.SetDistance(Distance);
         }
+        if (CurrentState == State.Menu && Input.anyKeyDown) StartRun();
+        if (CurrentState == State.GameOver && Input.anyKeyDown) ResetRun();
     }
 
-    void UpdateUI()
-    {
-        if (coinsText) coinsText.text = $"Coins: {coins}";
-        if (livesText) livesText.text = $"Lives: {lives}";
+    public void StartRun() {
+        CurrentState = State.Playing;
+        hud?.SetState(CurrentState);
     }
 
-    void GameOver()
-    {
-        Time.timeScale = 0f;
-        if (gameOverPanel)
-        {
-            gameOverPanel.SetActive(true);
+    public void ResetRun() {
+        Lives = Balance.MaxLives;
+        Coins = 0;
+        Distance = 0f;
+        CurrentState = State.Menu;
+        hud?.Init(Lives, Coins, Distance, CurrentState);
+    }
+
+    public void AddCoins(int amount) {
+        Coins += amount;
+        hud?.SetCoins(Coins);
+    }
+
+    public void HitObstacle() {
+        if (CurrentState != State.Playing) return;
+        Lives = Mathf.Max(0, Lives - 1);
+        hud?.SetLives(Lives);
+        if (Lives <= 0) {
+            CurrentState = State.GameOver;
+            hud?.SetState(CurrentState);
         }
-    }
-
-    public void Restart()
-    {
-        Time.timeScale = 1f;
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
     }
 }
