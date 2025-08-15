@@ -27,9 +27,9 @@ public class PlayerController : MonoBehaviour
         float newX = Mathf.MoveTowards(transform.position.x, targetX, laneChangeSpeed * Time.deltaTime);
         float deltaX = newX - transform.position.x;
 
-        float speed = Balance.Instance.PLAYER_SPEED;
-        float gravity = Balance.Instance.GRAVITY;
-        float jump = Balance.Instance.JUMP_FORCE;
+        float speed = Balance.PlayerSpeed;
+        float gravity = Balance.Gravity;
+        float jump = Balance.JumpForce;
 
         if (cc.isGrounded)
         {
