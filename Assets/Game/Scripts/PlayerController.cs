@@ -1,54 +1,68 @@
 using UnityEngine;
 
-[RequireComponent(typeof(CharacterController))]
+[RequireComponent(typeof(Rigidbody), typeof(CapsuleCollider))]
 public class PlayerController : MonoBehaviour
 {
-    public float laneOffset = 2f;
-    public float laneChangeSpeed = 10f;
-    private CharacterController cc;
-    private int lane = 1; // 0 left, 1 middle, 2 right
-    private float targetX;
-    private float verticalVel;
+    Rigidbody rb;
+    bool grounded;
+    [SerializeField] float laneHalfWidth = 3f;
 
     void Awake()
     {
-        cc = GetComponent<CharacterController>();
-        targetX = transform.position.x;
+        rb = GetComponent<Rigidbody>();
+        rb.constraints = RigidbodyConstraints.FreezeRotation;
     }
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow))
-            lane = Mathf.Max(0, lane - 1);
-        if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow))
-            lane = Mathf.Min(2, lane + 1);
+        if (GameManager.Instance.CurrentState != GameManager.State.Playing)
+            return;
 
-        targetX = (lane - 1) * laneOffset;
-        float newX = Mathf.MoveTowards(transform.position.x, targetX, laneChangeSpeed * Time.deltaTime);
-        float deltaX = newX - transform.position.x;
+        float x = Mathf.Clamp(transform.position.x + Input.GetAxis("Horizontal") * 5f * Time.deltaTime, -laneHalfWidth, laneHalfWidth);
+        transform.position = new Vector3(x, transform.position.y, transform.position.z);
 
-        float speed = Balance.PlayerSpeed;
-        float gravity = Balance.Gravity;
-        float jump = Balance.JumpForce;
-
-        if (cc.isGrounded)
+        if (grounded && (Input.GetKeyDown(KeyCode.Space) || Input.GetMouseButtonDown(0)))
         {
-            verticalVel = -0.1f;
-            if (Input.GetKeyDown(KeyCode.Space))
-                verticalVel = jump;
+            rb.velocity = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
+            rb.AddForce(Vector3.up * Balance.JumpForce, ForceMode.VelocityChange);
+            grounded = false;
         }
-        else
-        {
-            verticalVel += gravity * Time.deltaTime;
-        }
-
-        Vector3 move = new Vector3(deltaX, verticalVel * Time.deltaTime, speed * Time.deltaTime);
-        cc.Move(move);
     }
 
-    void OnControllerColliderHit(ControllerColliderHit hit)
+    void FixedUpdate()
     {
-        if (hit.collider.CompareTag("Obstacle"))
+        if (GameManager.Instance.CurrentState != GameManager.State.Playing)
+            return;
+
+        rb.velocity = new Vector3(rb.velocity.x, rb.velocity.y, Balance.PlayerSpeed);
+        rb.AddForce(Vector3.up * Balance.Gravity, ForceMode.Acceleration);
+    }
+
+    void OnCollisionStay(Collision collision)
+    {
+        foreach (var contact in collision.contacts)
+        {
+            if (Vector3.Dot(contact.normal, Vector3.up) > 0.5f)
+            {
+                grounded = true;
+                break;
+            }
+        }
+    }
+
+    void OnCollisionExit(Collision collision)
+    {
+        grounded = false;
+    }
+
+    void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Coin"))
+        {
+            GameManager.Instance.AddCoins(Balance.CoinsPerPickup);
+            Destroy(other.gameObject);
+        }
+        else if (other.CompareTag("Obstacle"))
         {
             GameManager.Instance.HitObstacle();
         }
